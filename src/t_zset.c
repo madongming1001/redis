@@ -137,7 +137,21 @@ void zslFree(zskiplist *zsl) {
 /* Returns a random level for the new skiplist node we are going to create.
  * The return value of this function is between 1 and ZSKIPLIST_MAXLEVEL
  * (both inclusive), with a powerlaw-alike distribution where higher
- * levels are less likely to be returned. */
+ * levels are less likely to be returned. 
+ *   
+ * 
+ *              Skiplist P = 1/4  
+ *              while 循环中   
+ *              循环为真 的概率为 P(1/4) 
+ *              循环为假的概率 为 (1 - P)
+ *              所以
+ *              层高为1 的概率为  (1 -P)
+ *              层高为2 的概率为  P(1 -P)
+ *              层高为3 的概率为  P^2 *(1 -P)
+ *              层高为4 的概率为  P^3 *(1 -P)
+ *              层高为n 的概率为  P^n *(1 -P)
+ * 
+ * */
 int zslRandomLevel(void) {
     int level = 1;
     while ((random()&0xFFFF) < (ZSKIPLIST_P * 0xFFFF))
@@ -1633,6 +1647,9 @@ long zsetRank(robj *zobj, sds ele, int reverse) {
 
 /*-----------------------------------------------------------------------------
  * Sorted set commands
+ * 
+ *  zadd  命令处理函数   
+ * 
  *----------------------------------------------------------------------------*/
 
 /* This generic command implements both ZADD and ZINCRBY. */
