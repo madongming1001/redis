@@ -48,9 +48,9 @@ robj *createObject(int type, void *ptr) {
     /* Set the LRU to the current lruclock (minutes resolution), or
      * alternatively the LFU counter. */
     if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) {
-        o->lru = (LFUGetTimeInMinutes()<<8) | LFU_INIT_VAL;
+        o->lru = (LFUGetTimeInMinutes()<<8) | LFU_INIT_VAL; // 
     } else {
-        o->lru = LRU_CLOCK();
+        o->lru = LRU_CLOCK();   // 获取 24bit 当前时间秒数
     }
     return o;
 }
