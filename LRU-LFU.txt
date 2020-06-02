@@ -50,11 +50,13 @@ Since usually access patterns don’t change very suddenly, this is an effective
 
 由于通常情况下访问模式不会立即改变，这是一种有效的策略。 
 
-However the notion of “recently requested often” is more insidious that it may look at a first glance (we’ll return shortly on this). 
+However the notion of “recently requested often” is more insidious that it may
+ look at a first glance (we’ll return shortly on this). 
 
 然而，“最近请求频繁”的概念可能乍一看更为晦涩
 
-So this concept is simplified into an algorithm that is called LRU, which instead just tracks the *last time* a key was requested.
+So this concept is simplified into an algorithm that is called LRU, which 
+instead just tracks the *last time* a key was requested.
 
 因此，这个概念被简化为一个称为LRU的算法，它只跟踪*上次*请求 Key 的时间。
 
@@ -204,7 +206,8 @@ accessed the keys sequentially so that each had a decreasing
 idle time. Finally 50% more keys were added (the green ones in the
 picture), so that half of the old keys needed to be evicted.
 
-In a perfect LRU implementation no key from the new added keys are evicted, and the initial 50% of the old dataset is evicted.
+In a perfect LRU implementation no key from the new added keys are evicted, 
+and the initial 50% of the old dataset is evicted.
 
 This is the representation produced by the program for different
 versions of Redis and different settings:
@@ -307,28 +310,63 @@ retain keys that have the maximum probability of being accessed in the
 future, that are the keys *most frequently accessed*, not the ones with
 the latest access.
 
+由于原有的算法难以改进，我开始进行测试新算法。如果我们倒回一点博客文章的开头，我们
+说LRU其实是一种技巧。我们真正想要的是方法中具有最大被访问概率的键，将来键是“最常访问的”，而不是“带”
+最新的访问。
+
 The algorithm evicting the keys with the least number of accesses
 is called LFU. It means Least Frequently Used, which is the feature of
 the keys that it attempts to kill to make space for new keys.
+
+该算法以最少的访问次数逐出key被称为LFU。意味着最不常用的key将被驱逐来为新键腾出空间。
 
 In theory LFU is as simple as associating a counter to each key. At
 every access the counter gets incremented, so that we know that a given
 key is accessed more frequently than another key.
 
+从理论上讲，LFU就像为每个键关联一个计数器一样简单。每次访问key时计数器都递增，
+所以我们可以知道一个给定的密钥比另一个key更频繁地被访问。
+
 Well, there are at least a few more problems, not specific to Redis,
 general issues of LFU implementations:
 
-1. With LFU you cannot use the “move to head” linked list trick used for LRU in order to take elements sorted for eviction in a simple way, since keys must be ordered by number of accesses in “perfect LFU”. Moving the accessed key to the right place can be problematic because there could be many keys with the same score, so the operation can be O(N) in the worst case, even if the key frequency counter changed just a little. Also as we’ll see in point “2” the accesses counter does not always change just a little, there are also sudden large changes.
+
+
+1. With LFU you cannot use the “move to head” linked list trick used for LRU 
+in order to take elements sorted for eviction in a simple way, since keys 
+must be ordered by number of accesses in “perfect LFU”. Moving the accessed 
+key to the right place can be problematic because there could be many keys 
+with the same score, so the operation can be O(N) in the worst case, even if 
+the key frequency counter changed just a little. Also as we’ll see 
+in point “2” the accesses counter does not always change just a little, 
+there are also sudden large changes.
+
+对于LFU，你不能使用LRU使用的“移动到头部”链表技巧以一种简单的方式对元素进行排序，因为键
+必须按照“LFU”中的访问次数排序。
+
+将被访问的键移动到正确的位置可能会有问题，因为可能有许多具有相同得分的键，所以在最坏的情况下，操作可能是O(N)，即使
+键的计数器只改变了一点 
+
+同时，我们会在第2点看到访问计数器并不总是会有一点变化，也有突然的巨大变化。
+
+
 
 2. LFU can’t really be as trivial as, just increment the access counter
 on each access. As we said, access patterns change over time, so a key
 with an high score needs to see its score reduced over time if nobody
 keeps accessing it. Our algorithm must be albe to adapt over time.
 
+LFU不可能像这样简单，只是在每次访问时增加访问计数器。
+正如我们所说，访问模式会随时间变化，所以如果没有人一直访问，那么得分高的键需要看到它的得分随时间下降。我们的算法必须适应时间的变化。
+
 In Redis the first problems is not a problem: we can just use the trick
 used for LRU: random sampling with the pool of candidates. The second
 problem remains. So normally LFU implementations have some way in order
 to decrement, or halve the access counter from time to time.
+
+在Redis中，第一个问题不是问题:我们可以采用 用于LRU中的技巧:具有候选池的随机抽样。第二个
+问题依旧存在。所以通常情况下，LFU实现会以某种方式递减，或者将访问计数器减半。
+
 
 Implementing LFU in 24 bits of space
 ===
@@ -336,11 +374,15 @@ Implementing LFU in 24 bits of space
 LFU has its implementation peculiarities itself, however in Redis all
 we can use is our 24 bit LRU field in order to model LFU. To implement
 LFU in just 24 bits per objects is a bit more tricky.
-
+LFU有它自己的实现特性，但是在Redis中可以使用我们的24位LRU 字段来建模LFU。每个对象只有24位的LFU有点棘手。
 What we need to do in 24 bits is:
 
 1. Some kind of access frequency counter.
+  
+某种访问频率计数器。 
 2. Enough information to decide when to halve the counter.
+
+足够的信息来决定何时将计数器减半
 
 My solution was to split the 24 bits into two fields:
 
@@ -353,10 +395,17 @@ The 16 bit field is the last decrement time, so that Redis knows the
 last time the counter was decremented, while the 8 bit field is the
 actual access counter.
 
+16 bit field：  记录上次衰减的时间
+8 bit :         记录计数器
+
+
 You are thinking that it’s pretty fast to overflow an 8 bit counter,
 right? Well, the trick is, instead of using just a counter, I used
 a logarithmic counter. This is the function that increments the
 counter during accesses to the keys:
+
+8 bit 很容易就溢出了，技巧 是用一个 逻辑计数器，而不是一个普通的递增计数器
+
 
   uint8_t LFULogIncr(uint8_t counter) {
       if (counter == 255) return 255;
@@ -374,14 +423,25 @@ a number ‘p’ between 0 and 1 which is smaller and smaller as the counter
 increases. Then it extracts a random number ‘r’ between 0 and 1 and only
 increments the counter if ‘r < p’ is true.
 
+基本上，计数器的值越大，计数器真正增加的可能性就越小:上面的代码计算一个在0和1之间的数字“p”，随着计数器的增加，这个数字会越来越小。
+然后它提取一个介于0和1之间的随机数“r”，并且仅当 ‘ r < p ‘ 是正确的。
+
+
+
+
+
 You can configure how much aggressively the counter is implemented
 via redis.conf parameters, but for instance, with the default
 settings, this is what happens:
+
+你可以通过redis.conf参数配置计数器执行的递增程度，例如，在默认设置下，如下所示:
 
 After 100 hits the value of the counter is 10
 After 1000 is 18
 After 100k is 142
 After 1 million hits it reaches the 255 limit and no longer increments
+
+
 
 Now let’s see how this counter is decremented. The 16 bits are used in
 order to store the less significant bits of the UNIX time converted
@@ -392,6 +452,12 @@ N minutes ago (with N configurable), the value of the counter is halved
 if it is an high value, or just decremented if it is a lower value
 (in the hope that we can better discriminate among keys with few
 accesses, given that our counter resolution is very small).
+
+现在让我们看看这个计数器是如何递减的。
+这16位用于存储转换为分钟的UNIX时间中不太重要的位。
+当Redis对key 空间进行随机抽样扫描时
+在搜索填充池的键时，将检查遇到的所有键是否递减。
+如果最后一个减量在超过N分钟之前执行(N 可配置)，计数器的值就会减半
 
 There is yet another problem, new keys need a chance to survive after
 all. In vanilla LFU a just added key has an access score of 0, so it
