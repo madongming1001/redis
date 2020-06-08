@@ -1511,7 +1511,7 @@ int zsetAdd(robj *zobj, double score, sds ele, int *flags, double *newscore) {
 
             /* Remove and re-insert when score changes. 
             
-            删除原有节点， 重新插入 
+                分值不同的场景 
             */
             if (score != curscore) {
                 znode = zslUpdateScore(zs->zsl,curscore,ele,score);

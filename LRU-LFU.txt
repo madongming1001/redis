@@ -459,6 +459,7 @@ accesses, given that our counter resolution is very small).
 在搜索填充池的键时，将检查遇到的所有键是否递减。
 如果最后一个减量在超过N分钟之前执行(N 可配置)，计数器的值就会减半
 
+
 There is yet another problem, new keys need a chance to survive after
 all. In vanilla LFU a just added key has an access score of 0, so it
 is a very good candidate for eviction. In Redis new keys start with
@@ -466,6 +467,16 @@ an LFU value of 5. This initial value is accounted in the increment
 and halving algorithms. Simulations show that with this change keys have
 some time in order to accumulate accesses: keys with a score less than
 5 will be preferred (non active keys for a long time).
+
+
+还有另一个问题，新的Key毕竟需要生存的机会。
+在普通的LFU中，一个刚添加的键的访问分数为0，所以它是一个很好的驱逐对象。
+在Redis的实现中新Key开始LFU值为5。这个初始值被计入增量中和减半算法。
+模拟表明，通过这种改变，键有一定的时间来积累访问:
+分数小于5的键将被优先使用(在很长一段时间内非活动键)。
+
+
+
 
 Code and performances
 ===
