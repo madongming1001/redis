@@ -644,8 +644,8 @@ typedef struct clientReplyBlock {
  * database. The database number is the 'id' field in the structure. */
 // Redis DB 
 typedef struct redisDb {
-    dict *dict;                 /* The keyspace for this DB */
-    dict *expires;              /* Timeout of keys with a timeout set */
+    dict *dict;                 /* The keyspace for this DB    */
+    dict *expires;              /* Timeout of keys with a timeout set    过期时间字典 */
     dict *blocking_keys;        /* Keys with clients waiting for data (BLPOP)*/
     dict *ready_keys;           /* Blocked keys that received a PUSH */
     dict *watched_keys;         /* WATCHED keys for MULTI/EXEC CAS */
