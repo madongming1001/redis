@@ -80,7 +80,21 @@ robj *createRawStringObject(const char *ptr, size_t len) {
 
 /* Create a string object with encoding OBJ_ENCODING_EMBSTR, that is
  * an object where the sds string is actually an unmodifiable string
- * allocated in the same chunk as the object itself. */
+ * allocated in the same chunk as the object itself. 
+ * 
+ * 
+ *  createEmbeddedStringObject对sds
+ *  重新分配内存，将robj和sds放在一个连续的内存块中分配，
+ *   这样对于短字符串的存储有利于减少内存碎片
+ * 
+ * 
+ * 
+ *   16个字节的robj结构。
+     3个字节的sdshdr8头。
+     最多44个字节的sds字符数组。
+     1个NULL结束符  
+     加起来一共不超过64字节（16+3+44+1），因此这样的一个短字符串可以完全分配在一个64字节长度的内存块中
+ * * */
 robj *createEmbeddedStringObject(const char *ptr, size_t len) {
     robj *o = zmalloc(sizeof(robj)+sizeof(struct sdshdr8)+len+1);
     struct sdshdr8 *sh = (void*)(o+1);
@@ -461,12 +475,18 @@ robj *tryObjectEncoding(robj *o) {
 
     /* We try some specialized encoding only for objects that are
      * RAW or EMBSTR encoded, in other words objects that are still
-     * in represented by an actually array of chars. */
+     * in represented by an actually array of chars. 
+     * 
+     *  
+     * */
+    //  只有类型为 原生sds类型 或者  embstr类型， 还有机会可以进一步编码，否则直接返回
     if (!sdsEncodedObject(o)) return o;
 
     /* It's not safe to encode shared objects: shared objects can be shared
      * everywhere in the "object space" of Redis and may end in places where
      * they are not handled. We handle them only as values in the keyspace. */
+    
+    // 如果其他地方有应用即当前对象为共享对象， 修改范围将扩大，所以放弃编码为整形操作
      if (o->refcount > 1) return o;
 
     /* Check if we can represent this string as a long integer.   
@@ -483,7 +503,17 @@ robj *tryObjectEncoding(robj *o) {
         /* This object is encodable as a long. Try to use a shared object.
          * Note that we avoid using shared integers when maxmemory is used
          * because every object needs to have a private LRU field for the LRU
-         * algorithm to work well. */
+         * algorithm to work well. 
+         * 
+         * 
+         *   如果Redis的配置不要求运行LRU替换算法，且转成的long型数字的值又比较小
+         *  （小于OBJ_SHARED_INTEGERS，在目前的实现中这个值是10000），
+         *   那么会使用共享数字对象来表示。之所以这里的判断跟LRU有关，是因为LRU算法要求每个robj有不同的lru字段值，
+         *   所以用了LRU就不能共享robj。shared.integers是一个长度为10000的数组，里面预存了10000个小的数字对象。
+         *   这些小数字对象都是 encoding = OBJ_ENCODING_INT的string robj对象。
+         * 
+         * */
+        
         if ((server.maxmemory == 0 ||
             !(server.maxmemory_policy & MAXMEMORY_FLAG_NO_SHARED_INTEGERS)) &&
             value >= 0 &&
@@ -491,8 +521,11 @@ robj *tryObjectEncoding(robj *o) {
         {
             decrRefCount(o);
             incrRefCount(shared.integers[value]);
-            return shared.integers[value];
+            return shared.integers[value];  // 共享对象
         } else {
+            // 如果前一步不能使用共享小对象来表示，那么将原来的robj编码成encoding = OBJ_ENCODING_INT，这时ptr字段直接存成这个long型的值。
+            // 注意ptr字段本来是一个void *指针（即存储的是内存地址），
+            // 因此在64位机器上有64位宽度，正好能存储一个64位的long型值。这样，除了robj本身之外，它就不再需要额外的内存空间来存储字符串值。
             if (o->encoding == OBJ_ENCODING_RAW) {
                 sdsfree(o->ptr);
                 o->encoding = OBJ_ENCODING_INT;

@@ -6,6 +6,14 @@
  * the memory used by the ziplist, the actual complexity is related to the
  * amount of memory used by the ziplist.
  *
+ * 
+ *    ziplist是一个经过特殊编码的双向链表，它的设计目标就是为了提高存储效率，
+ *    ziplist可以用于存储字符串或整数，其中整数是按真正的二进制表示进行编码的，
+ *    而不是编码成字符串序列。它能以O(1)的时间复杂度在表的两端提供push和pop操作
+ * 
+ * 
+ * 
+ * 
  * ----------------------------------------------------------------------------
  *
  * ZIPLIST OVERALL LAYOUT
