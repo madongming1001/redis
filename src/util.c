@@ -343,7 +343,9 @@ int ll2string(char *dst, size_t dstlen, long long svalue) {
     return length;
 }
 
-/* Convert a string into a long long. Returns 1 if the string could be parsed
+/* 
+ *  将字符串转化为长整型 ，转化成功将把值 设置大 value 中   
+ * Convert a string into a long long. Returns 1 if the string could be parsed
  * into a (non-overflowing) long long, 0 otherwise. The value will be set to
  * the parsed value when appropriate.
  *
