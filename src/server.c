@@ -1960,7 +1960,11 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     /* We need to do a few operations on clients asynchronously. */
     clientsCron();
 
-    /* Handle background operations on Redis databases. */
+    /* Handle background operations on Redis databases.
+      
+       
+    处理数据库相关的后台任务，如 key过期淘汰
+     */
     databasesCron();
 
     /* Start a scheduled AOF rewrite if this was requested by the user while

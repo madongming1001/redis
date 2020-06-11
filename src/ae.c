@@ -429,7 +429,11 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         }
 
         /* Call the multiplexing API, will return only on timeout or when
-         * some event fires. */
+         * some event fires.
+         *  
+         *  多路复用( epoll , kqueue, select,evport ): 等待 文件事件 或者 时间事件的发生
+         * 
+         *  */
         numevents = aeApiPoll(eventLoop, tvp);
 
         /* After sleep callback. */
