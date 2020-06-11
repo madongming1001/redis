@@ -303,7 +303,9 @@ unsigned long LFUGetTimeInMinutes(void) {
 /* Given an object last access time, compute the minimum number of minutes
  * that elapsed since the last access. Handle overflow (ldt greater than
  * the current 16 bits minutes time) considering the time as wrapping
- * exactly once. */
+ * exactly once. 
+ *   计算时间段 
+ * */
 unsigned long LFUTimeElapsed(unsigned long ldt) {
     unsigned long now = LFUGetTimeInMinutes();
     if (now >= ldt) return now-ldt;
@@ -311,7 +313,10 @@ unsigned long LFUTimeElapsed(unsigned long ldt) {
 }
 
 /* Logarithmically increment a counter. The greater is the current counter value
- * the less likely is that it gets really implemented. Saturate it at 255. */
+ * the less likely is that it gets really implemented. Saturate it at 255. 
+ *  
+ * 逻辑递增算法  
+ */
 uint8_t LFULogIncr(uint8_t counter) {
     if (counter == 255) return 255;
     double r = (double)rand()/RAND_MAX;
@@ -333,8 +338,8 @@ uint8_t LFULogIncr(uint8_t counter) {
  * to fit: as we check for the candidate, we incrementally decrement the
  * counter of the scanned objects if needed. */
 unsigned long LFUDecrAndReturn(robj *o) {
-    unsigned long ldt = o->lru >> 8;
-    unsigned long counter = o->lru & 255;
+    unsigned long ldt = o->lru >> 8;    // 获取时间字段 
+    unsigned long counter = o->lru & 255;  // 获取 counter 
     unsigned long num_periods = server.lfu_decay_time ? LFUTimeElapsed(ldt) / server.lfu_decay_time : 0;
     if (num_periods)
         counter = (num_periods > counter) ? 0 : counter - num_periods;

@@ -44,14 +44,18 @@ int keyIsExpired(redisDb *db, robj *key);
  * Firstly, decrement the counter if the decrement time is reached.
  * Then logarithmically increment the counter, and update the access time. */
 void updateLFU(robj *val) {
-    unsigned long counter = LFUDecrAndReturn(val);
-    counter = LFULogIncr(counter);
+    unsigned long counter = LFUDecrAndReturn(val);  // 衰减
+    counter = LFULogIncr(counter);  // 逻辑递增
     val->lru = (LFUGetTimeInMinutes()<<8) | counter;
 }
 
 /* Low level key lookup API, not actually called directly from commands
  * implementations that should instead rely on lookupKeyRead(),
- * lookupKeyWrite() and lookupKeyReadWithFlags(). */
+ * lookupKeyWrite() and lookupKeyReadWithFlags(). 
+ * 
+ *       
+ * 
+ * */
 robj *lookupKey(redisDb *db, robj *key, int flags) {
     dictEntry *de = dictFind(db->dict,key->ptr);
     if (de) {
@@ -59,11 +63,17 @@ robj *lookupKey(redisDb *db, robj *key, int flags) {
 
         /* Update the access time for the ageing algorithm.
          * Don't do it if we have a saving child, as this will trigger
-         * a copy on write madness. */
+         * a copy on write madness. 
+         *   
+         *  根据内存淘汰策略更新 LRU 字段 
+         * 
+         * */
         if (!hasActiveChildProcess() && !(flags & LOOKUP_NOTOUCH)){
             if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) {
+                //  更新  LFU策略  
                 updateLFU(val);
             } else {
+                //  更新  LRU策略  
                 val->lru = LRU_CLOCK();
             }
         }
@@ -96,8 +106,10 @@ robj *lookupKey(redisDb *db, robj *key, int flags) {
  * correctly report a key is expired on slaves even if the master is lagging
  * expiring our key via DELs in the replication link. */
 robj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
+    
     robj *val;
 
+    // 过期key 处理  
     if (expireIfNeeded(db,key) == 1) {
         /* Key expired. If we are in the context of a master, expireIfNeeded()
          * returns 0 only when the key does not exist at all, so it's safe
@@ -130,6 +142,7 @@ robj *lookupKeyReadWithFlags(redisDb *db, robj *key, int flags) {
             return NULL;
         }
     }
+    // 
     val = lookupKey(db,key,flags);
     if (val == NULL) {
         server.stat_keyspace_misses++;
