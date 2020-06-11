@@ -2110,12 +2110,20 @@ void beforeSleep(struct aeEventLoop *eventLoop) {
     if (server.cluster_enabled) clusterBeforeSleep();
 
     /* Run a fast expire cycle (the called function will return
-     * ASAP if a fast cycle is not needed). */
+     * ASAP if a fast cycle is not needed). 
+     *   
+     *   清理过期key 
+     * 
+     * */
     if (server.active_expire_enabled && server.masterhost == NULL)
         activeExpireCycle(ACTIVE_EXPIRE_CYCLE_FAST);
 
     /* Unblock all the clients blocked for synchronous replication
-     * in WAIT. */
+     * in WAIT. 
+     *  
+     *  唤醒 被阻塞的客户端，即往客户端发送消息 
+     * 
+     * */
     if (listLength(server.clients_waiting_acks))
         processClientsWaitingReplicas();
 
