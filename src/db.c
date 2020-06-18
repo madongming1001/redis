@@ -1315,7 +1315,8 @@ int keyIsExpired(redisDb *db, robj *key) {
  * The return value of the function is 0 if the key is still valid,
  * otherwise the function returns 1 if the key is expired. */
 int expireIfNeeded(redisDb *db, robj *key) {
-    if (!keyIsExpired(db,key)) return 0;
+
+    if (!keyIsExpired(db,key)) return 0; // 未过期 
 
     /* If we are running in the context of a slave, instead of
      * evicting the expired key from the database, we return ASAP:
@@ -1332,8 +1333,8 @@ int expireIfNeeded(redisDb *db, robj *key) {
     propagateExpire(db,key,server.lazyfree_lazy_expire);
     notifyKeyspaceEvent(NOTIFY_EXPIRED,
         "expired",key,db->id);
-    int retval = server.lazyfree_lazy_expire ? dbAsyncDelete(db,key) :
-                                               dbSyncDelete(db,key);
+    int retval = server.lazyfree_lazy_expire ? dbAsyncDelete(db,key) :   // 异步删除
+                                               dbSyncDelete(db,key);     // 同步删除
     if (retval) signalModifiedKey(NULL,db,key);
     return retval;
 }
