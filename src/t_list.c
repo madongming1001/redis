@@ -37,12 +37,18 @@
  * at head or tail position as specified by 'where'.
  *
  * There is no need for the caller to increment the refcount of 'value' as
- * the function takes care of it if needed. */
+ * the function takes care of it if needed. 
+ * 
+ *   *subject : list 对象 
+ *    *value  : 客户端数据
+ *    
+ * */
 void listTypePush(robj *subject, robj *value, int where) {
     if (subject->encoding == OBJ_ENCODING_QUICKLIST) {
         int pos = (where == LIST_HEAD) ? QUICKLIST_HEAD : QUICKLIST_TAIL;
         value = getDecodedObject(value);
         size_t len = sdslen(value->ptr);
+        // 将数据放入  list 中   list对象，  值，  长度， 位置 
         quicklistPush(subject->ptr, value->ptr, len, pos);
         decrRefCount(value);
     } else {
@@ -212,9 +218,10 @@ void pushGenericCommand(client *c, int where) {
             lobj = createQuicklistObject();
             quicklistSetOptions(lobj->ptr, server.list_max_ziplist_size,
                                 server.list_compress_depth);
-            // 将数据加入到 list中
+            // 将 key( c->argv[1] ) 及 dictEntry( lobj)  加入到 db dict 中 
             dbAdd(c->db,c->argv[1],lobj);
         }
+        // 将数据 c->argv[j]  加到 lobj  中  
         listTypePush(lobj,c->argv[j],where);
         pushed++;
     }

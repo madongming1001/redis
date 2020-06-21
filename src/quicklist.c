@@ -1420,8 +1420,10 @@ int quicklistPop(quicklist *quicklist, int where, unsigned char **data,
 /* Wrapper to allow argument-based switching between HEAD/TAIL pop */
 void quicklistPush(quicklist *quicklist, void *value, const size_t sz,
                    int where) {
+    //  lpush 
     if (where == QUICKLIST_HEAD) {
         quicklistPushHead(quicklist, value, sz);
+    //  rpush    
     } else if (where == QUICKLIST_TAIL) {
         quicklistPushTail(quicklist, value, sz);
     }

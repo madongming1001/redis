@@ -575,9 +575,11 @@ robj *getDecodedObject(robj *o) {
     robj *dec;
 
     if (sdsEncodedObject(o)) {
+        // 引用计数 
         incrRefCount(o);
         return o;
     }
+    // int 编码的数据，转为字符串对象 
     if (o->type == OBJ_STRING && o->encoding == OBJ_ENCODING_INT) {
         char buf[32];
 
