@@ -197,17 +197,22 @@ void listTypeConvert(robj *subject, int enc) {
 void pushGenericCommand(client *c, int where) {
     int j, pushed = 0;
     robj *lobj = lookupKeyWrite(c->db,c->argv[1]);
-
+    
+    // 类型校验，非list对象，直接返回错误 
     if (lobj && lobj->type != OBJ_LIST) {
         addReply(c,shared.wrongtypeerr);
         return;
     }
 
+    
     for (j = 2; j < c->argc; j++) {
-        if (!lobj) {
+        // 新 key 
+        if (!lobj) {  
+            // create quicklist 数据结构
             lobj = createQuicklistObject();
             quicklistSetOptions(lobj->ptr, server.list_max_ziplist_size,
                                 server.list_compress_depth);
+            // 将数据加入到 list中
             dbAdd(c->db,c->argv[1],lobj);
         }
         listTypePush(lobj,c->argv[j],where);

@@ -224,7 +224,7 @@ robj *dupStringObject(const robj *o) {
         break;
     }
 }
-
+// 创建 quicklist 对象，设置编码
 robj *createQuicklistObject(void) {
     quicklist *l = quicklistCreate();
     robj *o = createObject(OBJ_LIST,l);
