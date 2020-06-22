@@ -216,6 +216,9 @@ void pushGenericCommand(client *c, int where) {
         if (!lobj) {  
             // create quicklist 数据结构
             lobj = createQuicklistObject();
+
+            //  设置每个节点能容多少节点/多大数据
+            //  设置压缩数据范围
             quicklistSetOptions(lobj->ptr, server.list_max_ziplist_size,
                                 server.list_compress_depth);
             // 将 key( c->argv[1] ) 及 dictEntry( lobj)  加入到 db dict 中 

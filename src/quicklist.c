@@ -431,7 +431,7 @@ REDIS_STATIC int _quicklistNodeAllowInsert(const quicklistNode *node,
         return 0;
 
     int ziplist_overhead;
-    /* size of previous offset */
+    /* size of previous offset   前面一个节点的偏移 */
     if (sz < 254)
         ziplist_overhead = 1;
     else
