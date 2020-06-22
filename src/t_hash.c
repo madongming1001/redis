@@ -43,9 +43,11 @@ void hashTypeTryConversion(robj *o, robj **argv, int start, int end) {
     if (o->encoding != OBJ_ENCODING_ZIPLIST) return;
 
     for (i = start; i <= end; i++) {
+        //判断数据长度，是否需要转化为 hashtable 数据结构
         if (sdsEncodedObject(argv[i]) &&
             sdslen(argv[i]->ptr) > server.hash_max_ziplist_value)
         {
+            // ziplist 转化为 hashtable 
             hashTypeConvert(o, OBJ_ENCODING_HT);
             break;
         }
@@ -206,6 +208,7 @@ int hashTypeSet(robj *o, sds field, sds value, int flags) {
         unsigned char *zl, *fptr, *vptr;
 
         zl = o->ptr;
+        // 查找插入值的位置
         fptr = ziplistIndex(zl, ZIPLIST_HEAD);
         if (fptr != NULL) {
             fptr = ziplistFind(fptr, (unsigned char*)field, sdslen(field), 1);
@@ -449,9 +452,13 @@ sds hashTypeCurrentObjectNewSds(hashTypeIterator *hi, int what) {
 }
 
 robj *hashTypeLookupWriteOrCreate(client *c, robj *key) {
+     
     robj *o = lookupKeyWrite(c->db,key);
+    
     if (o == NULL) {
+        // hashtable 默认用 ziplist编码
         o = createHashObject();
+        // 加入到key space中
         dbAdd(c->db,key,o);
     } else {
         if (o->type != OBJ_HASH) {
@@ -462,18 +469,22 @@ robj *hashTypeLookupWriteOrCreate(client *c, robj *key) {
     return o;
 }
 
+// ziplist -> hashtable 
 void hashTypeConvertZiplist(robj *o, int enc) {
     serverAssert(o->encoding == OBJ_ENCODING_ZIPLIST);
 
     if (enc == OBJ_ENCODING_ZIPLIST) {
         /* Nothing to do... */
 
+    // 将数据转化为真正的hashtable
     } else if (enc == OBJ_ENCODING_HT) {
         hashTypeIterator *hi;
         dict *dict;
         int ret;
-
+        // 迭代器 
         hi = hashTypeInitIterator(o);
+
+        // 创建hashtable
         dict = dictCreate(&hashDictType, NULL);
 
         while (hashTypeNext(hi) != C_ERR) {
@@ -536,10 +547,14 @@ void hsetCommand(client *c) {
         return;
     }
 
+    // 创建，或者查询返回一个 hashtable 对象
     if ((o = hashTypeLookupWriteOrCreate(c,c->argv[1])) == NULL) return;
+
+    // 类型转化(  ziplist -> hashtable )  
     hashTypeTryConversion(o,c->argv,2,c->argc-1);
 
     for (i = 2; i < c->argc; i += 2)
+        // 设值   
         created += !hashTypeSet(o,c->argv[i]->ptr,c->argv[i+1]->ptr,HASH_SET_COPY);
 
     /* HMSET (deprecated) and HSET return value is different. */
