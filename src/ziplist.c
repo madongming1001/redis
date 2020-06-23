@@ -234,8 +234,10 @@
 
 /* Utility macros.*/
 
-/* Return total bytes a ziplist is composed of. */
-#define ZIPLIST_BYTES(zl)       (*((uint32_t*)(zl)))
+/* Return total bytes a ziplist is composed of. 
+   ziplist 所占空间字节数 
+*/
+#define ZIPLIST_BYTES(zl)       (*((uint32_t*)(zl))) 
 
 /* Return the offset of the last item inside the ziplist. */
 #define ZIPLIST_TAIL_OFFSET(zl) (*((uint32_t*)((zl)+sizeof(uint32_t))))
@@ -749,7 +751,9 @@ unsigned char *__ziplistDelete(unsigned char *zl, unsigned char *p, unsigned int
 
 /* Insert item at "p". */
 unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned char *s, unsigned int slen) {
+    
     size_t curlen = intrev32ifbe(ZIPLIST_BYTES(zl)), reqlen;
+    
     unsigned int prevlensize, prevlen = 0;
     size_t offset;
     int nextdiff = 0;
@@ -761,11 +765,11 @@ unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned cha
 
     /* Find out prevlen for the entry that is inserted. */
     if (p[0] != ZIP_END) {
-        ZIP_DECODE_PREVLEN(p, prevlensize, prevlen);
+        ZIP_DECODE_PREVLEN(p, prevlensize, prevlen); //计算前面一个节点大小
     } else {
         unsigned char *ptail = ZIPLIST_ENTRY_TAIL(zl);
         if (ptail[0] != ZIP_END) {
-            prevlen = zipRawEntryLength(ptail);
+            prevlen = zipRawEntryLength(ptail); //计算尾节点大小
         }
     }
 
@@ -973,6 +977,7 @@ unsigned char *ziplistPush(unsigned char *zl, unsigned char *s, unsigned int sle
 unsigned char *ziplistIndex(unsigned char *zl, int index) {
     unsigned char *p;
     unsigned int prevlensize, prevlen = 0;
+    // 队尾遍历
     if (index < 0) {
         index = (-index)-1;
         p = ZIPLIST_ENTRY_TAIL(zl);
@@ -984,6 +989,7 @@ unsigned char *ziplistIndex(unsigned char *zl, int index) {
             }
         }
     } else {
+        // 从头遍历
         p = ZIPLIST_ENTRY_HEAD(zl);
         while (p[0] != ZIP_END && index--) {
             p += zipRawEntryLength(p);

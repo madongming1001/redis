@@ -40,15 +40,22 @@ void sunionDiffGenericCommand(client *c, robj **setkeys, int setnum,
  * an integer-encodable value, an intset will be returned. Otherwise a regular
  * hash table. */
 robj *setTypeCreate(sds value) {
+    // 客户端数据是否能转化为整形
     if (isSdsRepresentableAsLongLong(value,NULL) == C_OK)
+         // 转化为整数集合
         return createIntsetObject();
+    // 创建set 数据结构     
     return createSetObject();
 }
 
 /* Add the specified value into a set.
  *
  * If the value was already member of the set, nothing is done and 0 is
- * returned, otherwise the new element is added and 1 is returned. */
+ * returned, otherwise the new element is added and 1 is returned.
+ * 
+ *     元素已经存在 直接返回 0 ， 否则添加元素 返回 1 
+ *    
+ *  */
 int setTypeAdd(robj *subject, sds value) {
     long long llval;
     if (subject->encoding == OBJ_ENCODING_HT) {
@@ -60,18 +67,26 @@ int setTypeAdd(robj *subject, sds value) {
             return 1;
         }
     } else if (subject->encoding == OBJ_ENCODING_INTSET) {
+         // 判断是否可以用整形编码，可以的话用intset 编码 
         if (isSdsRepresentableAsLongLong(value,&llval) == C_OK) {
             uint8_t success = 0;
             subject->ptr = intsetAdd(subject->ptr,llval,&success);
             if (success) {
                 /* Convert to regular set when the intset contains
-                 * too many entries. */
+                 * too many entries. 
+                 *  
+                 * 如果元素个数超过  set-max-intset-entries[ 默认 512 ]   时，将转化为 hashtable 数据结构
+                 * 
+                 * */
                 if (intsetLen(subject->ptr) > server.set_max_intset_entries)
                     setTypeConvert(subject,OBJ_ENCODING_HT);
                 return 1;
             }
         } else {
-            /* Failed to get integer from object, convert to regular set. */
+            /* Failed to get integer from object, convert to regular set. 
+            
+                转整形失败，直接用hashtable存储
+            */
             setTypeConvert(subject,OBJ_ENCODING_HT);
 
             /* The set *was* an intset and this value is not integer
@@ -260,7 +275,7 @@ void setTypeConvert(robj *setobj, int enc) {
         serverPanic("Unsupported set conversion");
     }
 }
-
+// set  添加元素 处理函数
 void saddCommand(client *c) {
     robj *set;
     int j, added = 0;
@@ -275,8 +290,9 @@ void saddCommand(client *c) {
             return;
         }
     }
-
+    
     for (j = 2; j < c->argc; j++) {
+        // set 类型 添加元素
         if (setTypeAdd(set,c->argv[j]->ptr)) added++;
     }
     if (added) {

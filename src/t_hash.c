@@ -203,7 +203,7 @@ int hashTypeExists(robj *o, sds field) {
 #define HASH_SET_COPY 0
 int hashTypeSet(robj *o, sds field, sds value, int flags) {
     int update = 0;
-
+    // ziplist
     if (o->encoding == OBJ_ENCODING_ZIPLIST) {
         unsigned char *zl, *fptr, *vptr;
 
@@ -236,7 +236,9 @@ int hashTypeSet(robj *o, sds field, sds value, int flags) {
         }
         o->ptr = zl;
 
-        /* Check if the ziplist needs to be converted to a hash table */
+        /* Check if the ziplist needs to be converted to a hash table 
+           ziplist元素数量是否超过阈值,超过即转化为hashtable  
+        */
         if (hashTypeLength(o) > server.hash_max_ziplist_entries)
             hashTypeConvert(o, OBJ_ENCODING_HT);
     } else if (o->encoding == OBJ_ENCODING_HT) {
@@ -461,6 +463,7 @@ robj *hashTypeLookupWriteOrCreate(client *c, robj *key) {
         // 加入到key space中
         dbAdd(c->db,key,o);
     } else {
+        // 非法操作
         if (o->type != OBJ_HASH) {
             addReply(c,shared.wrongtypeerr);
             return NULL;
@@ -537,7 +540,7 @@ void hsetnxCommand(client *c) {
         server.dirty++;
     }
 }
-
+// hset/hmset 处理函数 
 void hsetCommand(client *c) {
     int i, created = 0;
     robj *o;
@@ -547,12 +550,12 @@ void hsetCommand(client *c) {
         return;
     }
 
-    // 创建，或者查询返回一个 hashtable 对象
+    // 创建，或者查询返回一个 dict/ziplist 对象
     if ((o = hashTypeLookupWriteOrCreate(c,c->argv[1])) == NULL) return;
 
     // 类型转化(  ziplist -> hashtable )  
     hashTypeTryConversion(o,c->argv,2,c->argc-1);
-
+        
     for (i = 2; i < c->argc; i += 2)
         // 设值   
         created += !hashTypeSet(o,c->argv[i]->ptr,c->argv[i+1]->ptr,HASH_SET_COPY);
