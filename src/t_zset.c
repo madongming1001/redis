@@ -873,7 +873,7 @@ int zzlCompareElements(unsigned char *eptr, unsigned char *cstr, unsigned int cl
 }
 
 unsigned int zzlLength(unsigned char *zl) {
-    return ziplistLen(zl)/2;
+    return ziplistLen(zl)/2;  // score - ele 所以要除以2 
 }
 
 /* Move to next entry based on the values in eptr and sptr. Both are set to
@@ -1095,9 +1095,10 @@ unsigned char *zzlFind(unsigned char *zl, sds ele, double *score) {
     unsigned char *eptr = ziplistIndex(zl,0), *sptr;
 
     while (eptr != NULL) {
+        // 遍历
         sptr = ziplistNext(zl,eptr);
         serverAssert(sptr != NULL);
-
+        // 判断是否是要找的元素    
         if (ziplistCompare(eptr,(unsigned char*)ele,sdslen(ele))) {
             /* Matching element, pull out score. */
             if (score != NULL) *score = zzlGetScore(sptr);
@@ -1455,7 +1456,9 @@ int zsetAdd(robj *zobj, double score, sds ele, int *flags, double *newscore) {
                 if (newscore) *newscore = score;
             }
 
-            /* Remove and re-insert when score changed. */
+            /* Remove and re-insert when score changed. 
+             元素 score 有变化，则删除老节点，重新插入
+            */
             if (score != curscore) {
                 zobj->ptr = zzlDelete(zobj->ptr,eptr);
                 zobj->ptr = zzlInsert(zobj->ptr,ele,score);
@@ -1468,6 +1471,8 @@ int zsetAdd(robj *zobj, double score, sds ele, int *flags, double *newscore) {
             zobj->ptr = zzlInsert(zobj->ptr,ele,score);
             if (zzlLength(zobj->ptr) > server.zset_max_ziplist_entries ||
                 sdslen(ele) > server.zset_max_ziplist_value)
+               // 元素个数 或者 单个元素大小超过阈值  任意条件满足就转化为skiplist      
+
                 zsetConvert(zobj,OBJ_ENCODING_SKIPLIST);
             if (newscore) *newscore = score;
             *flags |= ZADD_ADDED;
@@ -1742,7 +1747,7 @@ void zaddGenericCommand(client *c, int flags) {
         if (xx) goto reply_to_client; /* No key + XX option: nothing to do. */
 
         // 如果 zset_max_ziplist_entries ==0 
-        // 或者 zadd 元素的长度 zset_max_ziplist_value 
+        // 或者 zadd 元素的长度 > zset_max_ziplist_value 
         // 则直接创建 zset 数据结构
         // 否则创建ziplist 压缩列表数据结构  
         
