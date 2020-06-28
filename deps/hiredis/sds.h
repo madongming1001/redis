@@ -51,10 +51,10 @@ struct __attribute__ ((__packed__)) sdshdr5 {
     char buf[];
 };
 struct __attribute__ ((__packed__)) sdshdr8 {
-    uint8_t len; /* used */
-    uint8_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
+    uint8_t len; /* used    1 byte */
+    uint8_t alloc; /* excluding the header and null terminator  1 byte  */
+    unsigned char flags; /* 3 lsb of type, 5 unused bits    1 byte       */
+    char buf[];     // 1 byte 
 };
 struct __attribute__ ((__packed__)) sdshdr16 {
     uint16_t len; /* used */

@@ -605,13 +605,15 @@ typedef struct RedisModuleDigest {
 
 //  redisObject对象 
 typedef struct redisObject {
-    unsigned type:4;
-    unsigned encoding:4;
+    unsigned type:4;        //  4 bit 
+    unsigned encoding:4;    //  4 bit 
     unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
                             * LFU data (least significant 8 bits frequency
-                            * and most significant 16 bits access time). */
-    int refcount;
-    void *ptr;
+                            * and most significant 16 bits access time). 
+                            *    24 bit 
+                            * */
+    int refcount;           // 4 byte  
+    void *ptr;              // 8 byte  总空间:  4 bit + 4 bit + 24 bit + 4 byte + 8 byte = 16 byte  
 } robj;
 
 /* The a string name for an object's type as listed above
