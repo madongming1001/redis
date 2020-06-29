@@ -77,7 +77,7 @@ void setGenericCommand(client *c, int flags, robj *key, robj *val, robj *expire,
         }
         if (unit == UNIT_SECONDS) milliseconds *= 1000;
     }
-
+    // 校验:   nx 不能互斥设值， xx 需要有值 
     if ((flags & OBJ_SET_NX && lookupKeyWrite(c->db,key) != NULL) ||
         (flags & OBJ_SET_XX && lookupKeyWrite(c->db,key) == NULL))
     {
@@ -458,7 +458,9 @@ void appendCommand(client *c) {
 
         /* "append" is an argument, so always an sds */
         append = c->argv[2];
+        // append 后的目标长度
         totlen = stringObjectLen(o)+sdslen(append->ptr);
+        // 是否超过最大大小校验
         if (checkStringLength(c,totlen) != C_OK)
             return;
 
