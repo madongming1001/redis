@@ -132,8 +132,12 @@ void removeClientFromTimeoutTable(client *c) {
 }
 
 /* This function is called in beforeSleep() in order to unblock clients
- * that are waiting in blocking operations with a timeout set. */
+ * that are waiting in blocking operations with a timeout set. 
+ * 
+ * */
 void handleBlockedClientsTimeout(void) {
+
+    // 没有超时阻塞需要处理
     if (raxSize(server.clients_timeout_table) == 0) return;
     uint64_t now = mstime();
     raxIterator ri;

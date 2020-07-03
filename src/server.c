@@ -1843,6 +1843,8 @@ void checkChildrenDone(void) {
  */
 
 int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
+
+    serverLog(LL_DEBUG,"   =======================  serverCron start : ========================  ");
     int j;
     UNUSED(eventLoop);
     UNUSED(id);
@@ -2082,19 +2084,30 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
                           &ei);
 
     server.cronloops++;
+    serverLog(LL_DEBUG,"   =======================  serverCron end : ========================  ");
     return 1000/server.hz;
 }
 
 /* This function gets called every time Redis is entering the
  * main loop of the event driven library, that is, before to sleep
- * for ready file descriptors. */
+ * for ready file descriptors. 
+ * 
+ *   事件循环 前置处理，处理事件之前
+ * 
+ * */
 void beforeSleep(struct aeEventLoop *eventLoop) {
+    
+    // 消除警告
     UNUSED(eventLoop);
 
-    /* Handle precise timeouts of blocked clients. */
+    /* Handle precise timeouts of blocked clients. 
+       处理阻塞客户端超时时间
+    */
     handleBlockedClientsTimeout();
 
-    /* We should handle pending reads clients ASAP after event loop. */
+    /* We should handle pending reads clients ASAP after event loop. 
+       尽快读取客户端的请求数据( socket 缓冲区中的数据)
+    */
     handleClientsWithPendingReadsUsingThreads();
 
     /* Handle TLS pending data. (must be done before flushAppendOnlyFile) */
@@ -3379,7 +3392,11 @@ void call(client *c, int flags) {
  *
  * If C_OK is returned the client is still alive and valid and
  * other operations can be performed by the caller. Otherwise
- * if C_ERR is returned the client was destroyed (i.e. after QUIT). */
+ * if C_ERR is returned the client was destroyed (i.e. after QUIT). 
+ * 
+ *   command 处理函数 
+ * 
+ * */
 int processCommand(client *c) {
     moduleCallCommandFilters(c);
 
@@ -4942,7 +4959,7 @@ int iAmMaster(void) {
 int main(int argc, char **argv) {
     struct timeval tv;
     int j;
-
+ 
 #ifdef REDIS_TEST
     if (argc == 3 && !strcasecmp(argv[1], "test")) {
         if (!strcasecmp(argv[2], "ziplist")) {
@@ -5123,7 +5140,7 @@ int main(int argc, char **argv) {
             }
         }
         if (server.ipfd_count > 0 || server.tlsfd_count > 0)
-            serverLog(LL_NOTICE,"Ready to accept connections");
+            serverLog(LL_NOTICE,"《1.》Ready to accept connections");
         if (server.sofd > 0)
             serverLog(LL_NOTICE,"The server is now ready to accept connections at %s", server.unixsocket);
         if (server.supervised_mode == SUPERVISED_SYSTEMD) {
@@ -5145,7 +5162,11 @@ int main(int argc, char **argv) {
     }
 
     redisSetCpuAffinity(server.server_cpulist);
+
+    // 设置 
     aeSetBeforeSleepProc(server.el,beforeSleep);
+    
+    
     aeSetAfterSleepProc(server.el,afterSleep);
     aeMain(server.el);
     aeDeleteEventLoop(server.el);

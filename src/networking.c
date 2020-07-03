@@ -1593,7 +1593,12 @@ static void setProtocolError(const char *errstr, client *c) {
  *
  * This function is called if processInputBuffer() detects that the next
  * command is in RESP format, so the first byte in the command is found
- * to be '*'. Otherwise for inline commands processInlineBuffer() is called. */
+ * to be '*'. Otherwise for inline commands processInlineBuffer() is called. 
+ * 
+ *   Resp 解析 
+ * 
+ * 
+ * */
 int processMultibulkBuffer(client *c) {
     char *newline = NULL;
     int ok;
@@ -1798,7 +1803,12 @@ int processCommandAndResetClient(client *c) {
 /* This function is called every time, in the client structure 'c', there is
  * more query buffer to process, because we read more data from the socket
  * or because a client was blocked and later reactivated, so there could be
- * pending query buffer, already representing a full command, to process. */
+ * pending query buffer, already representing a full command, to process. 
+ * 
+ * 
+ *    处理 query buffer 数据， 解析成，主线程可以执行的命令
+ * 
+ * */
 void processInputBuffer(client *c) {
     /* Keep processing while there is something in the input buffer */
     while(c->qb_pos < sdslen(c->querybuf)) {
@@ -1825,10 +1835,15 @@ void processInputBuffer(client *c) {
          * The same applies for clients we want to terminate ASAP. */
         if (c->flags & (CLIENT_CLOSE_AFTER_REPLY|CLIENT_CLOSE_ASAP)) break;
 
-        /* Determine request type when unknown. */
+        /* Determine request type when unknown.
+         *
+         *  请求类型解析 
+         */
         if (!c->reqtype) {
+            // resp 协议
             if (c->querybuf[c->qb_pos] == '*') {
                 c->reqtype = PROTO_REQ_MULTIBULK;
+            // inline     
             } else {
                 c->reqtype = PROTO_REQ_INLINE;
             }
@@ -1848,6 +1863,7 @@ void processInputBuffer(client *c) {
                 break;
             }
         } else if (c->reqtype == PROTO_REQ_MULTIBULK) {
+            // resp 解析到 client 中， 这一步处理完，则可以交付给主线程执行
             if (processMultibulkBuffer(c) != C_OK) break;
         } else {
             serverPanic("Unknown request type");
@@ -1888,16 +1904,21 @@ void readQueryFromClient(connection *conn) {
     size_t qblen;
 
     /* Check if we want to read from the client later when exiting from
-     * the event loop. This is the case if threaded I/O is enabled. */
+     * the event loop. This is the case if threaded I/O is enabled. 
+     *   如果开启了 IO多线程，则直接返回
+     * */
     if (postponeClientRead(c)) return;
 
-    readlen = PROTO_IOBUF_LEN;
+    readlen = PROTO_IOBUF_LEN;  // 16 kb 
     /* If this is a multi bulk request, and we are processing a bulk reply
      * that is large enough, try to maximize the probability that the query
      * buffer contains exactly the SDS string representing the object, even
      * at the risk of requiring more read(2) calls. This way the function
      * processMultiBulkBuffer() can avoid copying buffers to create the
-     * Redis Object representing the argument. */
+     * Redis Object representing the argument. 
+     * 
+     *   批处理操作 
+     **/
     if (c->reqtype == PROTO_REQ_MULTIBULK && c->multibulklen && c->bulklen != -1
         && c->bulklen >= PROTO_MBULK_BIG_ARG)
     {
@@ -1911,7 +1932,9 @@ void readQueryFromClient(connection *conn) {
     qblen = sdslen(c->querybuf);
     if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
     c->querybuf = sdsMakeRoomFor(c->querybuf, readlen);
+    // 从socket 中读取数据 
     nread = connRead(c->conn, c->querybuf+qblen, readlen);
+    // 连接错误
     if (nread == -1) {
         if (connGetState(conn) == CONN_STATE_CONNECTED) {
             return;
@@ -1920,10 +1943,12 @@ void readQueryFromClient(connection *conn) {
             freeClientAsync(c);
             return;
         }
+    // 连接关闭    
     } else if (nread == 0) {
         serverLog(LL_VERBOSE, "Client closed connection");
         freeClientAsync(c);
         return;
+    // 处理缓冲区数据，数据赋值到 pending_querybuf     
     } else if (c->flags & CLIENT_MASTER) {
         /* Append the query buffer to the pending (not applied) buffer
          * of the master. We'll use this buffer later in order to have a
@@ -1936,6 +1961,7 @@ void readQueryFromClient(connection *conn) {
     c->lastinteraction = server.unixtime;
     if (c->flags & CLIENT_MASTER) c->read_reploff += nread;
     server.stat_net_input_bytes += nread;
+    // 超过缓冲区大小，则异步关闭客户端
     if (sdslen(c->querybuf) > server.client_max_querybuf_len) {
         sds ci = catClientInfoString(sdsempty(),c), bytes = sdsempty();
 
@@ -1943,12 +1969,15 @@ void readQueryFromClient(connection *conn) {
         serverLog(LL_WARNING,"Closing client that reached max query buffer length: %s (qbuf initial bytes: %s)", ci, bytes);
         sdsfree(ci);
         sdsfree(bytes);
+        //  异步(serverCron )关闭客户端
         freeClientAsync(c);
         return;
     }
 
     /* There is more data in the client input buffer, continue parsing it
-     * in case to check if there is a full command to execute. */
+     * in case to check if there is a full command to execute. 
+     *   解析数据  
+     * */
      processInputBuffer(c);
 }
 
@@ -2890,7 +2919,11 @@ int io_threads_op;      /* IO_THREADS_OP_WRITE or IO_THREADS_OP_READ. */
 
 /* This is the list of clients each thread will serve when threaded I/O is
  * used. We spawn io_threads_num-1 threads, since one is the main thread
- * itself. */
+ * itself. 
+ *   
+ *     IO Thread[ io_threads_num-1 个] :  read/write 的个数     
+ *   
+ * */
 list *io_threads_list[IO_THREADS_MAX_NUM];
 
 void *IOThreadMain(void *myid) {
@@ -3095,7 +3128,10 @@ int handleClientsWithPendingWritesUsingThreads(void) {
 /* Return 1 if we want to handle the client read later using threaded I/O.
  * This is called by the readable handler of the event loop.
  * As a side effect of calling this function the client is put in the
- * pending read clients and flagged as such. */
+ * pending read clients and flagged as such. 
+ * 
+ *   1:   用  IO 多线程稍后处理
+ * */
 int postponeClientRead(client *c) {
     if (io_threads_active &&
         server.io_threads_do_reads &&
@@ -3115,11 +3151,25 @@ int postponeClientRead(client *c) {
  * process (instead of serving them synchronously). This function runs
  * the queue using the I/O threads, and process them in order to accumulate
  * the reads in the buffers, and also parse the first command available
- * rendering it in the client structures. */
+ * rendering it in the client structures. 
+ * 
+ * 
+ *    如果开启了 IO 线程 读 + 解析 resp 协议的 配置， 则 开始将 客户端缓冲区 读取
+ *    任务/ 解析任务 ，分派到 不同的 IO thread 队列中。并将缓冲区中的数据读取，设值
+ *    到 client 数据结构中
+ * 
+ * */
+// 多线程处理 客户端 读/协议解析 任务
 int handleClientsWithPendingReadsUsingThreads(void) {
+    // 未开启多线程，直接返回
     if (!io_threads_active || !server.io_threads_do_reads) return 0;
+
+    // 客户端待处理请求个数
     int processed = listLength(server.clients_pending_read);
+    
+    // 当前没有任务
     if (processed == 0) return 0;
+
 
     if (tio_debug) printf("%d TOTAL READ pending clients\n", processed);
 
@@ -3131,15 +3181,20 @@ int handleClientsWithPendingReadsUsingThreads(void) {
     while((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
         int target_id = item_id % server.io_threads_num;
+        // 不同的客户端请求，分派到不同的 IO 线程处理
         listAddNodeTail(io_threads_list[target_id],c);
         item_id++;
     }
 
     /* Give the start condition to the waiting threads, by setting the
-     * start condition atomic var. */
+     * start condition atomic var.
+     * 
+     *  标记为读操作 
+     **/
     io_threads_op = IO_THREADS_OP_READ;
     for (int j = 1; j < server.io_threads_num; j++) {
         int count = listLength(io_threads_list[j]);
+        // 统计每个线程的任务数 
         io_threads_pending[j] = count;
     }
 
@@ -3147,17 +3202,22 @@ int handleClientsWithPendingReadsUsingThreads(void) {
     listRewind(io_threads_list[0],&li);
     while((ln = listNext(&li))) {
         client *c = listNodeValue(ln);
+        // 从 socket 中读取数据,最终解析到  client 中
         readQueryFromClient(c->conn);
     }
     listEmpty(io_threads_list[0]);
 
-    /* Wait for all the other threads to end their work. */
+    /* Wait for all the other threads to end their work. 
+    * 
+    *   I/O  READ  线程中没有待处理的任务，则 break .  
+    */
     while(1) {
         unsigned long pending = 0;
         for (int j = 1; j < server.io_threads_num; j++)
             pending += io_threads_pending[j];
         if (pending == 0) break;
     }
+
     if (tio_debug) printf("I/O READ All threads finshed\n");
 
     /* Run the list of clients again to process the new buffers. */
