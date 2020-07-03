@@ -2992,13 +2992,13 @@ void initThreadedIO(void) {
     /* Spawn and initialize the I/O threads. */
     for (int i = 0; i < server.io_threads_num; i++) {
         /* Things we do for all the threads including the main thread. */
-        io_threads_list[i] = listCreate();
-        if (i == 0) continue; /* Thread 0 is the main thread. */
+        io_threads_list[i] = listCreate();   // 给每个线程分配一个队列( 链表)
+        if (i == 0) continue; /* Thread 0 is the main thread.   index 为 0 的 是主线程 */
 
         /* Things we do only for the additional threads. */
         pthread_t tid;
-        pthread_mutex_init(&io_threads_mutex[i],NULL);
-        io_threads_pending[i] = 0;
+        pthread_mutex_init(&io_threads_mutex[i],NULL); //  线程初始化
+        io_threads_pending[i] = 0;   // 任务数初始化
         pthread_mutex_lock(&io_threads_mutex[i]); /* Thread will be stopped. */
         if (pthread_create(&tid,NULL,IOThreadMain,(void*)(long)i) != 0) {
             serverLog(LL_WARNING,"Fatal: Can't initialize IO thread.");
