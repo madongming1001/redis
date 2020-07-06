@@ -498,7 +498,7 @@ robj *tryObjectEncoding(robj *o) {
      * */
     len = sdslen(s);
 
-    // 转化成功 
+    //   范围是否在 整型值得表示范围 ， 0 - 2^64,最多不超过20 位
     if (len <= 20 && string2l(s,len,&value)) {
         /* This object is encodable as a long. Try to use a shared object.
          * Note that we avoid using shared integers when maxmemory is used
@@ -513,13 +513,13 @@ robj *tryObjectEncoding(robj *o) {
          *   这些小数字对象都是 encoding = OBJ_ENCODING_INT的string robj对象。
          * 
          * */
-        
+        // 没有设置内存淘汰策略，且数字范围在 缓存整型得范围内
         if ((server.maxmemory == 0 ||
             !(server.maxmemory_policy & MAXMEMORY_FLAG_NO_SHARED_INTEGERS)) &&
             value >= 0 &&
             value < OBJ_SHARED_INTEGERS)
         {
-            decrRefCount(o);
+            decrRefCount(o); // 不需要用额外得对象来存储
             incrRefCount(shared.integers[value]);
             return shared.integers[value];  // 共享对象
         } else {
@@ -527,7 +527,7 @@ robj *tryObjectEncoding(robj *o) {
             // 注意ptr字段本来是一个void *指针（即存储的是内存地址），
             // 因此在64位机器上有64位宽度，正好能存储一个64位的long型值。这样，除了robj本身之外，它就不再需要额外的内存空间来存储字符串值。
             if (o->encoding == OBJ_ENCODING_RAW) {
-                sdsfree(o->ptr);
+                sdsfree(o->ptr); // 释放空间
                 o->encoding = OBJ_ENCODING_INT;
                 // 用整形编码
                 o->ptr = (void*) value;

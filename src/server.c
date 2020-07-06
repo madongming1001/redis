@@ -3412,7 +3412,7 @@ int processCommand(client *c) {
 
     /* Now lookup the command and check ASAP about trivial error conditions
      * such as wrong arity, bad command name and so forth. */
-    c->cmd = c->lastcmd = lookupCommand(c->argv[0]->ptr);
+    c->cmd = c->lastcmd = lookupCommand(c->argv[0]->ptr);  // 查询对应的处理函数
     if (!c->cmd) {
         flagTransaction(c);
         sds args = sdsempty();
