@@ -426,7 +426,10 @@ int getBitOffsetFromArgument(client *c, robj *o, size_t *offset, int hash, int b
     /* Adjust the offset by 'bits' for #<offset> form. */
     if (usehash) loffset *= bits;
 
-    /* Limit offset to 512MB in bytes */
+    /* Limit offset to 512MB in bytes
+     *  offset / 8  =>  offset >> 3  得到字节数
+     *  如果字节数超过 string 的最大值， 直接返回错误
+     **/
     if ((loffset < 0) || ((unsigned long long)loffset >> 3) >= (512*1024*1024))
     {
         addReplyError(c,err);
@@ -529,10 +532,10 @@ void setbitCommand(client *c) {
     ssize_t byte, bit;
     int byteval, bitval;
     long on;
-
+     // 解析  offset
     if (getBitOffsetFromArgument(c,c->argv[2],&bitoffset,0,0) != C_OK)
         return;
-
+     // 解析  整型value
     if (getLongFromObjectOrReply(c,c->argv[3],&on,err) != C_OK)
         return;
 
