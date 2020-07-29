@@ -158,7 +158,7 @@ void zslFree(zskiplist *zsl) {
  *               
  *               =1/(1-P) 
  * 
- *             当P= 0.25 时， 节点的层高均值约为 1.33 ，得出 空间复杂度为,  O(1)  
+ *
  *              
  * 
  * */
@@ -1746,10 +1746,10 @@ void zaddGenericCommand(client *c, int flags) {
     if (zobj == NULL) {
         if (xx) goto reply_to_client; /* No key + XX option: nothing to do. */
 
-        // 如果 zset_max_ziplist_entries ==0 
-        // 或者 zadd 元素的长度 > zset_max_ziplist_value 
-        // 则直接创建 zset 数据结构
-        // 否则创建ziplist 压缩列表数据结构  
+        // 如果 zset_max_ziplist_entries ==0
+        //        // 或者 zadd 元素的长度 > zset_max_ziplist_value
+        //        // 则直接创建 skiplist 数据结构
+        //        // 否则创建ziplist 压缩列表数据结构
         
         if (server.zset_max_ziplist_entries == 0 ||
             server.zset_max_ziplist_value < sdslen(c->argv[scoreidx+1]->ptr))
