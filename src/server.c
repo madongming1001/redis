@@ -5092,6 +5092,8 @@ int main(int argc, char **argv) {
             exit(1);
         }
         resetServerSaveParams();
+
+        // redis.conf/ command line  配置读取
         loadServerConfig(configfile,options);
         sdsfree(options);
     }

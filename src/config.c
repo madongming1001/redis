@@ -548,6 +548,7 @@ void loadServerConfig(char *filename, char *options) {
         if (filename[0] == '-' && filename[1] == '\0') {
             fp = stdin;
         } else {
+            // 从文件读取
             if ((fp = fopen(filename,"r")) == NULL) {
                 serverLog(LL_WARNING,
                     "Fatal error, can't open config file '%s'", filename);
@@ -563,6 +564,7 @@ void loadServerConfig(char *filename, char *options) {
         config = sdscat(config,"\n");
         config = sdscat(config,options);
     }
+    // 解析string，完成配置
     loadServerConfigFromString(config);
     sdsfree(config);
 }
