@@ -5165,7 +5165,7 @@ int main(int argc, char **argv) {
 
     redisSetCpuAffinity(server.server_cpulist);
 
-    // 设置 
+
     aeSetBeforeSleepProc(server.el,beforeSleep);
     
     

@@ -539,7 +539,10 @@ void setbitCommand(client *c) {
     if (getLongFromObjectOrReply(c,c->argv[3],&on,err) != C_OK)
         return;
 
-    /* Bits can only be set or cleared... */
+    /* Bits can only be set or cleared... *
+     *
+     * bit 位 只能是 0 / 1 否则直接返回失败
+     */
     if (on & ~1) {
         addReplyError(c,err);
         return;
