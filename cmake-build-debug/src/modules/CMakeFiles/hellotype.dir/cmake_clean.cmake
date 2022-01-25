@@ -2,7 +2,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/hellotype.dir/hellotype.c.o"
   "hellotype.pdb"
   "hellotype.so"
-  "libhellotype.dll.a"
 )
 
 # Per-language clean rules from dependency scanning.

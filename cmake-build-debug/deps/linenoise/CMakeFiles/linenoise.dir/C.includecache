@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/cygdrive/e/sourcecode/opensource/redis-6.0-annotated/redis/deps/linenoise/linenoise.c
+/Users/madongming/IdeaProjects/redis/deps/linenoise/linenoise.c
 termios.h
 -
 unistd.h
@@ -32,7 +32,7 @@ sys/ioctl.h
 unistd.h
 -
 linenoise.h
-/cygdrive/e/sourcecode/opensource/redis-6.0-annotated/redis/deps/linenoise/linenoise.h
+/Users/madongming/IdeaProjects/redis/deps/linenoise/linenoise.h
 
-/cygdrive/e/sourcecode/opensource/redis-6.0-annotated/redis/deps/linenoise/linenoise.h
+/Users/madongming/IdeaProjects/redis/deps/linenoise/linenoise.h
 

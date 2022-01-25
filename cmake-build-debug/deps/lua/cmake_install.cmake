@@ -1,4 +1,4 @@
-# Install script for directory: /cygdrive/e/sourcecode/opensource/redis-6.0-annotated/redis/deps/lua
+# Install script for directory: /Users/madongming/IdeaProjects/redis/deps/lua
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -30,5 +30,10 @@ endif()
 # Is this installation the result of a crosscompile?
 if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
+endif()
+
+# Set default install directory permissions.
+if(NOT DEFINED CMAKE_OBJDUMP)
+  set(CMAKE_OBJDUMP "/Library/Developer/CommandLineTools/usr/bin/objdump")
 endif()
 

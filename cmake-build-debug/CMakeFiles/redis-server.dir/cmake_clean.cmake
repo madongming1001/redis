@@ -76,8 +76,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/redis-server.dir/src/ziplist.c.o"
   "CMakeFiles/redis-server.dir/src/zipmap.c.o"
   "CMakeFiles/redis-server.dir/src/zmalloc.c.o"
-  "src/libredis-server.dll.a"
-  "src/redis-server.exe"
+  "src/redis-server"
   "src/redis-server.pdb"
 )
 

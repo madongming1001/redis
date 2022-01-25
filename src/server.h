@@ -603,15 +603,17 @@ typedef struct RedisModuleDigest {
 #define OBJ_STATIC_REFCOUNT (INT_MAX-1) /* Object allocated in the stack. */
 #define OBJ_FIRST_SPECIAL_REFCOUNT OBJ_STATIC_REFCOUNT
 
-//  redisObject对象 
+//  redisObject对象 :  string , list ,set ,hash ,zset ...
 typedef struct redisObject {
-    unsigned type:4;        //  4 bit
+    //类型检查 服务器会先检查输入数据库键的值对象是否为执行命令需要的类型
+    unsigned type:4;        //  4 bit, sting , hash
     unsigned encoding:4;    //  4 bit 
     unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
                             * LFU data (least significant 8 bits frequency
                             * and most significant 16 bits access time). 
                             *    24 bit 
                             * */
+    //引用计数 内存回收使用
     int refcount;           // 4 byte  
     void *ptr;              // 8 byte  总空间:  4 bit + 4 bit + 24 bit + 4 byte + 8 byte = 16 byte  
 } robj;
@@ -886,22 +888,32 @@ struct sharedObjectsStruct {
 /* ZSETs use a specialized version of Skiplists */
 typedef struct zskiplistNode {
     sds ele;
+    //按照分值从小到大排列
     double score;
+    //指向当前节点的前一个节点
     struct zskiplistNode *backward;
     struct zskiplistLevel {
+        //前进指针，用于访问位于表为方向的其他节点
         struct zskiplistNode *forward;
+        //跨度，记录了前进指针所指向节点和当前节点的距离
         unsigned long span;
     } level[];
 } zskiplistNode;
 
 typedef struct zskiplist {
     struct zskiplistNode *header, *tail;
+    //记录跳跃表的长度，也即是，跳跃表当前包含节点的数量（表头节点不计算在内）
     unsigned long length;
+    //记录目前跳跃表里面，层数最大的那个节点的层数（表头节点的层数不计算在内）
     int level;
 } zskiplist;
 
 typedef struct zset {
+    //键为成员，值为分值
+    //用于O(1)复杂度的按分支操作
     dict *dict;
+    //跳跃表，按分值排序成员
+    //用于支持平均复杂度O(log(n))的按分值定位成员操作以及范围
     zskiplist *zsl;
 } zset;
 

@@ -7,8 +7,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/redis-cli.dir/src/release.c.o"
   "CMakeFiles/redis-cli.dir/src/sds.c.o"
   "CMakeFiles/redis-cli.dir/src/zmalloc.c.o"
-  "src/libredis-cli.dll.a"
-  "src/redis-cli.exe"
+  "src/redis-cli"
   "src/redis-cli.pdb"
 )
 

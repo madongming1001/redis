@@ -1,0 +1,209 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						5
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						6,
+						7
+					]
+				},
+				{
+					"build" : "deps",
+					"childIndexes" : 
+					[
+						2,
+						3,
+						4
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "deps"
+				},
+				{
+					"build" : "deps/hiredis",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "deps/hiredis",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "deps/linenoise",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "deps/linenoise",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "deps/lua",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "deps/lua",
+					"targetIndexes" : 
+					[
+						5
+					]
+				},
+				{
+					"build" : "src/modules",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "src/modules",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						8
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"name" : "redis",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 5,
+					"id" : "helloblock::@e5f2f2a1f21f4df3a143",
+					"jsonFile" : "target-helloblock-Debug-6293b5aae1339b7e6c51.json",
+					"name" : "helloblock",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "hellotype::@e5f2f2a1f21f4df3a143",
+					"jsonFile" : "target-hellotype-Debug-26bc424628d9f91d4658.json",
+					"name" : "hellotype",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "helloworld::@e5f2f2a1f21f4df3a143",
+					"jsonFile" : "target-helloworld-Debug-c30fdb439a4301085f10.json",
+					"name" : "helloworld",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "hiredis::@8aee188d977b3356ca55",
+					"jsonFile" : "target-hiredis-Debug-f5adb7656353d954c1d4.json",
+					"name" : "hiredis",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "linenoise::@eb5190127594ef08c6af",
+					"jsonFile" : "target-linenoise-Debug-f19d56427857eb8446a3.json",
+					"name" : "linenoise",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "lua::@67e70dc13aa9e25c27cd",
+					"jsonFile" : "target-lua-Debug-01b0cd30be6c50537580.json",
+					"name" : "lua",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "redis-cli::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-redis-cli-Debug-11cfae0d127040284187.json",
+					"name" : "redis-cli",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "redis-server::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-redis-server-Debug-2aecf84e32b2d350ba00.json",
+					"name" : "redis-server",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "testmodule::@e5f2f2a1f21f4df3a143",
+					"jsonFile" : "target-testmodule-Debug-126101b486c40ac298ec.json",
+					"name" : "testmodule",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/madongming/IdeaProjects/redis/cmake-build-debug",
+		"source" : "/Users/madongming/IdeaProjects/redis"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 2
+	}
+}

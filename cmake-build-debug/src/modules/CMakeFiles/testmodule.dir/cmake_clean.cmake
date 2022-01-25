@@ -1,6 +1,5 @@
 file(REMOVE_RECURSE
   "CMakeFiles/testmodule.dir/testmodule.c.o"
-  "libtestmodule.dll.a"
   "testmodule.pdb"
   "testmodule.so"
 )

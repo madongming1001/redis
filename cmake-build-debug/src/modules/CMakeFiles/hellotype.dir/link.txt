@@ -1,1 +1,1 @@
-/usr/bin/cc -g   -shared -Wl,--enable-auto-import -o hellotype.so -Wl,--out-implib,libhellotype.dll.a -Wl,--major-image-version,0,--minor-image-version,0 CMakeFiles/hellotype.dir/hellotype.c.o 
+/Library/Developer/CommandLineTools/usr/bin/cc -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk -dynamiclib -Wl,-headerpad_max_install_names -o hellotype.so -install_name @rpath/hellotype.so CMakeFiles/hellotype.dir/hellotype.c.o 

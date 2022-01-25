@@ -1,4 +1,4 @@
-C:\Users\tl\.CLion2019.3\system\cygwin_cmake\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /cygdrive/e/sourcecode/opensource/redis-6.0-annotated/redis
+/private/var/folders/63/6jf6dfwd2w9dgwp_mjv6160h0000gn/T/AppTranslocation/F1E77E72-5150-4D53-9493-A8649F4DCBD0/d/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DEPENDS_USE_COMPILER=FALSE -G "CodeBlocks - Unix Makefiles" /Users/madongming/IdeaProjects/redis
 -- Configuring done
 -- Generating done
--- Build files have been written to: /cygdrive/e/sourcecode/opensource/redis-6.0-annotated/redis/cmake-build-debug
+-- Build files have been written to: /Users/madongming/IdeaProjects/redis/cmake-build-debug
